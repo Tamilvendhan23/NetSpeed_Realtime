@@ -1,0 +1,10 @@
+# Normalize line endings in the repo; Windows scripts must stay CRLF.
+* text=auto
+*.cs      text eol=lf diff=csharp
+*.csproj  text eol=lf
+*.manifest text eol=lf
+*.md      text eol=lf
+*.json    text eol=lf
+*.ps1     text eol=crlf
+*.bat     text eol=crlf
+*.cmd     text eol=crlf

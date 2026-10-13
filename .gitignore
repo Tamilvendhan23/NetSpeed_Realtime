@@ -1,0 +1,48 @@
+# ---- Build output ----
+[Bb]in/
+[Oo]bj/
+[Pp]ublish/
+[Oo]ut/
+artifacts/
+
+# ---- Visual Studio / Rider / VS Code ----
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+*.DotSettings.user
+launchSettings.json
+
+# ---- .NET tooling ----
+*.nupkg
+*.snupkg
+project.lock.json
+.nuget/
+packages/
+TestResults/
+*.trx
+coverage*.xml
+*.log
+*.binlog
+msbuild.*
+
+# ---- Local app data (settings live in %LOCALAPPDATA%, never in the repo) ----
+settings.json
+settings.json.tmp
+
+# ---- OS junk ----
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# ---- Misc ----
+*.orig
+*.rej
+*.bak
+*.tmp
+*.zip
