@@ -133,7 +133,3 @@ netspeedmonitor/
 - Pause polling while the bar is hidden, the session is locked, or the PC is suspended.
 
 ---
-
-## License
-
-Add a license of your choice (for example MIT) as a `LICENSE` file before publishing.
