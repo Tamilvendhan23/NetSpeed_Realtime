@@ -223,7 +223,8 @@ public sealed class SettingsForm : Form
 
         Controls.Add(root);
 
-        AcceptButton = _btnSave;
+        // No AcceptButton on purpose: pressing Enter on a dropdown/checkbox used to Save and close the dialog
+        // unexpectedly. Esc still closes; Save & Apply must be clicked deliberately.
         CancelButton = _btnClose;
 
         ResumeLayout(performLayout: true);

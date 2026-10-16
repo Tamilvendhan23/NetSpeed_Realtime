@@ -65,7 +65,7 @@ For development you can also run `dotnet run` (Windows only).
 | Hide / show the bar | Tray menu, or double-click the tray icon |
 | Quit | Tray menu → **Exit** |
 
-Closing the bar only hides it to the tray; use **Exit** to quit.
+The bar ignores accidental close requests (e.g. Alt+F4); use the tray menu to **Hide** it or **Exit**.
 
 ---
 
@@ -98,6 +98,7 @@ netspeedmonitor/
 ├── NetworkSpeedTracker.cs   # Adapter selection, speed sampling, unit formatting
 ├── AppSettings.cs           # settings.json load/save
 ├── StartupManager.cs        # HKCU Run-key registration
+├── AppLog.cs                # Diagnostic log (crashes, exit reasons)
 ├── app.manifest             # asInvoker, Windows 10/11 compatibility
 ├── NetSpeedMonitor.csproj
 ├── build.bat / build.ps1    # Release build scripts
@@ -105,6 +106,12 @@ netspeedmonitor/
 ├── .gitattributes
 └── README.md
 ```
+
+---
+
+## Diagnostics
+
+If the app ever stops unexpectedly, check `%LOCALAPPDATA%\NetSpeedMonitor\netspeedmonitor.log`. It records start, exit reasons, resume-from-sleep and any error with its stack trace (the file is trimmed automatically).
 
 ---
 
@@ -133,3 +140,4 @@ netspeedmonitor/
 - Pause polling while the bar is hidden, the session is locked, or the PC is suspended.
 
 ---
+

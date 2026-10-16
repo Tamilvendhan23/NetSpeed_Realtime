@@ -354,7 +354,27 @@ public sealed class MainForm : Form
         return icon;
     }
 
+    private int _consecutiveTickErrors;
+
     private void Timer_Tick(object? sender, EventArgs e)
+    {
+        try
+        {
+            TimerTickCore();
+            _consecutiveTickErrors = 0;
+        }
+        catch (Exception ex)
+        {
+            // One bad sample (adapter vanished, driver hiccup after resume...) must not raise a dialog
+            // every second or take the app down. Log the first few and keep ticking.
+            if (++_consecutiveTickErrors <= 3)
+            {
+                AppLog.Write("Timer tick failed", ex);
+            }
+        }
+    }
+
+    private void TimerTickCore()
     {
         var sample = _tracker.Sample();
 
@@ -750,6 +770,7 @@ public sealed class MainForm : Form
 
     private void ExitApplication()
     {
+        AppLog.Write("Exit requested from tray menu");
         _isExplicitExitRequested = true;
         _timer.Stop();
         _notifyIcon.Visible = false; // remove the tray icon right away; Dispose() releases everything once
@@ -759,25 +780,43 @@ public sealed class MainForm : Form
 
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
-        if (!_isExplicitExitRequested)
+        AppLog.Write($"FormClosing reason={e.CloseReason} explicitExit={_isExplicitExitRequested}");
+
+        // Let Windows shut down / sign out, let Task Manager "End task" work, and honour our own Exit.
+        // (Cancelling these made Windows show "preventing shutdown" and force-kill the app.)
+        if (_isExplicitExitRequested ||
+            e.CloseReason is CloseReason.WindowsShutDown
+                          or CloseReason.TaskManagerClosing
+                          or CloseReason.ApplicationExitCall
+                          or CloseReason.FormOwnerClosing)
         {
-            // Close hides to tray
-            e.Cancel = true;
-            _settings.IsStatusBarVisible = false;
-            Visible = false;
-            _menuItemToggleVisible.Text = "Show Status Bar";
-            _settings.Save();
+            base.OnFormClosing(e);
             return;
         }
 
-        base.OnFormClosing(e);
+        // Anything else (e.g. an accidental Alt+F4 on the bar) is ignored: the bar stays visible and
+        // the app keeps running. Use the tray menu to hide or exit on purpose.
+        e.Cancel = true;
     }
 
     private void SystemEvents_PowerModeChanged(object sender, PowerModeChangedEventArgs e)
     {
         if (e.Mode == Microsoft.Win32.PowerModes.Resume)
         {
-            _tracker.ResetBaseline();
+            AppLog.Write("Resume from sleep");
+
+            // This event arrives on a background thread; the tracker belongs to the UI thread.
+            try
+            {
+                if (IsHandleCreated && !IsDisposed)
+                {
+                    BeginInvoke(new Action(() => _tracker.ResetBaseline()));
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLog.Write("Resume handler failed", ex);
+            }
         }
     }
 

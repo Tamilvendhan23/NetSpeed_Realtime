@@ -22,24 +22,31 @@ internal static class Program
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
 
-        // Global exception safety
+        // Global exception safety: log everything, never let one bad tick spam dialogs or kill the app.
         Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+
+        bool errorShownOnce = false;
         Application.ThreadException += (s, e) =>
         {
-            MainForm.ShowTopMostMessage(
-                $"NetSpeed Monitor encountered an unexpected error:\n\n{e.Exception.Message}",
-                MessageBoxIcon.Error);
+            AppLog.Write("UI thread exception (app keeps running)", e.Exception);
+            if (!errorShownOnce)
+            {
+                errorShownOnce = true; // only one pop-up per session; the rest go to the log
+                MainForm.ShowTopMostMessage(
+                    $"NetSpeed Monitor hit an unexpected error and is continuing:\n\n{e.Exception.Message}\n\n" +
+                    "Details were written to %LOCALAPPDATA%\\NetSpeedMonitor\\netspeedmonitor.log",
+                    MessageBoxIcon.Warning);
+            }
         };
 
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>
         {
-            if (e.ExceptionObject is Exception ex)
-            {
-                MainForm.ShowTopMostMessage(
-                    $"NetSpeed Monitor critical error:\n\n{ex.Message}",
-                    MessageBoxIcon.Error);
-            }
+            // Log FIRST: this one terminates the process.
+            AppLog.Write($"FATAL unhandled exception (terminating={e.IsTerminating})", e.ExceptionObject as Exception);
         };
+
+        AppDomain.CurrentDomain.ProcessExit += (s, e) => AppLog.Write("Process exit");
+        AppLog.Write("Started");
 
         Application.Run(new MainForm());
     }
